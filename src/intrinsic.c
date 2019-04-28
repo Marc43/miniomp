@@ -9,8 +9,14 @@ int omp_get_num_threads (void) {
 }
 
 int omp_get_thread_num (void) {
-  int id = *((int*) pthread_getspecific(miniomp_specifickey));
-	return id;
+  int *id = ((int*)pthread_getspecific(miniomp_specifickey));
+
+  if (id == NULL) {
+		return 0;
+  }
+  
+	return *id;
+
 }
 
 // No need to implement this function, it is just involked by Extrae at some point

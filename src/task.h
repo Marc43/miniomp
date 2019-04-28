@@ -11,7 +11,7 @@ typedef struct {
 
 typedef struct {
 		int counter; 									//Number of tasks in the current section
-		pthread_mutex_t counterlock; 	//lock to operate over this struct
+//		pthread_mutex_t counterlock; 	//lock to operate over this struct
 		int occupied;										//Is currently being used?
 } taskgroup_t;
 

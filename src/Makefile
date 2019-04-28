@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS   = -Wall -O -std=c99 -march=native -I. -D_GNU_SOURCE -ggdb
+CFLAGS   = -Wall -O -std=c99 -march=native -I. -D_GNU_SOURCE
 CFLAGS_SO = -fPIC --shared
 
 TARGETS  = libminiomp.so

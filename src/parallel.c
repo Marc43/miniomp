@@ -33,7 +33,7 @@ void *worker(void *args) {
 	int id = ((miniomp_parallel_t *) args)->id;
 
 	//global identifier with key
-	pthread_setspecific(miniomp_specifickey, &id); 
+	pthread_setspecific(miniomp_specifickey, &((miniomp_parallel_t*) args)->id); 
 
 	if (id == 0) {
 		((miniomp_parallel_t *) args)->fn(((miniomp_parallel_t*) args)->fn_data);
@@ -48,12 +48,7 @@ void *worker(void *args) {
 
 		if (task != NULL) {
 			task->fn(task->data);
-
-			//Surely could be improved using atomic hardware operations..
-			pthread_mutex_lock(&taskgroups[task->taskgroup].counterlock);
-			taskgroups[task->taskgroup].counter--;
-			pthread_mutex_unlock(&taskgroups[task->taskgroup].counterlock);
-
+			__sync_fetch_and_sub(&taskgroups[task->taskgroup].counter, 1);
 		}
 	}
 
@@ -75,12 +70,10 @@ GOMP_parallel (void (*fn) (void *), void *data, unsigned num_threads, unsigned i
 
 	taskgroups[0].counter = 0;
 	taskgroups[0].occupied = 1; //Never should be set to 0..
-	pthread_mutex_init(&taskgroups[0].counterlock, NULL);
 
 	for (int i=1; i < MAXTASKGROUP_REGIONS; i++) {
 		taskgroups[i].counter = 0;
 		taskgroups[i].occupied = 0;
-		pthread_mutex_init(&taskgroups[i].counterlock, NULL);
 	}
 
 	generating = 1; //Starting to generate tasks..

@@ -35,7 +35,7 @@ bool is_full(miniomp_taskqueue_t *task_queue) {
 // Enqueues the task descriptor at the tail of the task queue
 bool enqueue(miniomp_taskqueue_t *task_queue, miniomp_task_t *task_descriptor) {
 			
-    while (!(__sync_bool_compare_and_swap(&(task_queue->lock_queue), 0, 1)));
+    while (!(__sync_bool_compare_and_swap(&(task_queue->lock_queue), 0, 1))) {}
 
 		if (!is_full(task_queue)) {
 
@@ -125,23 +125,11 @@ GOMP_task (void (*fn) (void *), void *data, void (*cpyfn) (void *, void *),
 				}
 
   if (flags & GOMP_TASK_FLAG_NOGROUP) {
-		 pthread_mutex_lock(&taskgroups[0].counterlock);
-		 taskgroups[0].counter++; //Increment counter, a new task queued, and does not belong to a taskgroup!
-		 pthread_mutex_unlock(&taskgroups[0].counterlock);
+		 __sync_fetch_and_add(&taskgroups[0].counter, 1);
 		 to_enqueue->taskgroup=0;
 	}
   else {
-		 /*
-		 printf("DOES belong to taskgroup: %d\n", taskgroup_pointer);
-		 pthread_mutex_lock(&taskgroups[taskgroup_pointer].counterlock);
-		 taskgroups[taskgroup_pointer].counter++;
-		 pthread_mutex_unlock(&taskgroups[taskgroup_pointer].counterlock);
-		 to_enqueue->taskgroup=taskgroup_pointer;
-		 */
-
-		 pthread_mutex_lock(&taskgroups[taskgroup_pointer].counterlock);
-		 taskgroups[taskgroup_pointer].counter++;
-		 pthread_mutex_unlock(&taskgroups[taskgroup_pointer].counterlock);
+		 __sync_fetch_and_add(&taskgroups[1].counter, 1);
 		 to_enqueue->taskgroup=1;
   }
 
